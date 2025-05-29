@@ -1,5 +1,6 @@
 {
     "recommendations": [
-        "imgildev.vscode-nextjs-generator"
+        "imgildev.vscode-nextjs-generator",
+        "mattogodoy.hacker-sounds"
     ]
 }
