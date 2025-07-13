@@ -13,7 +13,7 @@ dependencies:
     version: 0.8.7(@ton/core@0.54.0)(@tonconnect/sdk@3.0.7)(axios@1.8.3)
   '@ston-fi/sdk':
     specifier: ^0.4.0
-    version: 0.4.1(tonweb@0.0.62)
+    version: 0.4.1(tonweb@0.0.66)
   '@tact-lang/compiler':
     specifier: ^1.6.12
     version: 1.6.12
@@ -75,8 +75,8 @@ dependencies:
     specifier: ^2.1.1
     version: 2.1.1(ton-core@0.53.0)(ton-crypto@3.2.0)
   tonweb:
-    specifier: ^0.0.62
-    version: 0.0.62(expo@52.0.38)(react-native@0.78.0)
+    specifier: ^0.0.66
+    version: 0.0.66(expo@52.0.38)(react-native@0.78.0)
   ts-jest:
     specifier: ^29.1.1
     version: 29.2.6(@babel/core@7.26.10)(jest@29.7.0)(typescript@5.8.2)
@@ -2931,13 +2931,13 @@ packages:
       tslib: 2.8.1
     dev: false
 
-  /@ston-fi/sdk@0.4.1(tonweb@0.0.62):
+  /@ston-fi/sdk@0.4.1(tonweb@0.0.66):
     resolution: {integrity: sha512-wPL7YOCyS46fsFIPters1xOtvPkL8iRR5Bk04lVjuuKqEF+DpeaOx8gUFlT1HMbf/JTAsTD4eKnIpL6yEhhFoQ==}
     requiresBuild: true
     peerDependencies:
       tonweb: ~0.0.39
     dependencies:
-      tonweb: 0.0.62(expo@52.0.38)(react-native@0.78.0)
+      tonweb: 0.0.66(expo@52.0.38)(react-native@0.78.0)
     dev: false
 
   /@tact-lang/compiler@1.6.12:
@@ -8515,8 +8515,8 @@ packages:
       zod: 3.24.2
     dev: false
 
-  /tonweb@0.0.62(expo@52.0.38)(react-native@0.78.0):
-    resolution: {integrity: sha512-Uwu2DQwmVkI85WVLzqIqUvqNk++N97e2EH3hKb+Tvq3fA6pcEP7AugcNr1xU33GmajtLT9vquMo7/kNcnS1Fuw==}
+  /tonweb@0.0.66(expo@52.0.38)(react-native@0.78.0):
+    resolution: {integrity: sha512-ntDJU1b/kgMFvOYN09FvhdnAfwnZh8W5sONkUP+P0FQkYRa/027otRxApp5gfxZ9DR+3WTnCQgrsG/EXv8RhEA==}
     dependencies:
       '@ledgerhq/hw-transport-web-ble': 5.48.0
       '@ledgerhq/hw-transport-webhid': 5.48.0
