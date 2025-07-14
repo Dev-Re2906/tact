@@ -33,7 +33,7 @@
     "ton-crypto": "^3.2.0",
     "ton-emulator": "^2.1.1",
     "tonweb": "^0.0.66",
-    "ts-jest": "^29.1.1",
+    "ts-jest": "^29.4.0",
     "ts-node": "^10.9.1"
   },
   "devDependencies": {
