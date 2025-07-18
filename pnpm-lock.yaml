@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@aws-crypto/sha256-js':
-    specifier: ^4.0.0
-    version: 4.0.0
+    specifier: ^5.0.0
+    version: 5.2.0
   '@dedust/sdk':
     specifier: ^0.8.6
     version: 0.8.7(@ton/core@0.61.0)(@tonconnect/sdk@3.2.0)(axios@1.10.0)
@@ -51,7 +51,7 @@ dependencies:
     specifier: ^16.3.1
     version: 16.4.7
   enquirer:
-    specifier: ^2.4.1
+    specifier: ^2.3.6
     version: 2.4.1
   jest:
     specifier: ^30.0.0
@@ -113,20 +113,21 @@ packages:
     resolution: {integrity: sha512-HazVq9zwTVwGmqdwYzu7WyQ6FQVZ7SwET0KKQuKm55jD0IfUpZgN0OPIiZG3zV1iSrVYcN0bdwLRXI/VNCYsUA==}
     dev: false
 
-  /@aws-crypto/sha256-js@4.0.0:
-    resolution: {integrity: sha512-MHGJyjE7TX9aaqXj7zk2ppnFUOhaDs5sP+HtNS0evOxn72c+5njUmyJmpGd7TfyoDznZlHMmdo/xGUdu2NIjNQ==}
+  /@aws-crypto/sha256-js@5.2.0:
+    resolution: {integrity: sha512-FFQQyu7edu4ufvIZ+OadFpHHOt+eSTBaYaki44c+akjg7qZg9oOQeLlk77F6tSYqjDAFClrHJk9tMf0HdVyOvA==}
+    engines: {node: '>=16.0.0'}
     dependencies:
-      '@aws-crypto/util': 4.0.0
+      '@aws-crypto/util': 5.2.0
       '@aws-sdk/types': 3.734.0
-      tslib: 1.14.1
+      tslib: 2.8.1
     dev: false
 
-  /@aws-crypto/util@4.0.0:
-    resolution: {integrity: sha512-2EnmPy2gsFZ6m8bwUQN4jq+IyXV3quHAcwPOS6ZA3k+geujiqI8aRokO2kFJe+idJ/P3v4qWI186rVMo0+zLDQ==}
+  /@aws-crypto/util@5.2.0:
+    resolution: {integrity: sha512-4RkU9EsI6ZpBve5fseQlGNUWKMa1RLPQ1dnjnQoe07ldfIzcsGb5hC5W0Dm7u423KWzawlrpbjXBrXCEv9zazQ==}
     dependencies:
       '@aws-sdk/types': 3.734.0
-      '@aws-sdk/util-utf8-browser': 3.259.0
-      tslib: 1.14.1
+      '@smithy/util-utf8': 2.3.0
+      tslib: 2.8.1
     dev: false
 
   /@aws-sdk/types@3.734.0:
@@ -134,12 +135,6 @@ packages:
     engines: {node: '>=18.0.0'}
     dependencies:
       '@smithy/types': 4.1.0
-      tslib: 2.8.1
-    dev: false
-
-  /@aws-sdk/util-utf8-browser@3.259.0:
-    resolution: {integrity: sha512-UvFa/vR+e19XookZF8RzFZBrw2EUkQWxiBW0yYQAhvk3C+QVGl0H3ouca8LDBlBfQKXwmW3huo/59H8rwb1wJw==}
-    dependencies:
       tslib: 2.8.1
     dev: false
 
@@ -2422,10 +2417,33 @@ packages:
       '@sinonjs/commons': 3.0.1
     dev: false
 
+  /@smithy/is-array-buffer@2.2.0:
+    resolution: {integrity: sha512-GGP3O9QFD24uGeAXYUjwSTXARoqpZykHadOmA8G5vfJPK0/DC67qa//0qvqrJzL1xc8WQWX7/yc7fwudjPHPhA==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      tslib: 2.8.1
+    dev: false
+
   /@smithy/types@4.1.0:
     resolution: {integrity: sha512-enhjdwp4D7CXmwLtD6zbcDMbo6/T6WtuuKCY49Xxc6OMOmUWlBEBDREsxxgV2LIdeQPW756+f97GzcgAwp3iLw==}
     engines: {node: '>=18.0.0'}
     dependencies:
+      tslib: 2.8.1
+    dev: false
+
+  /@smithy/util-buffer-from@2.2.0:
+    resolution: {integrity: sha512-IJdWBbTcMQ6DA0gdNhh/BwrLkDR+ADW5Kr1aZmd4k3DIF6ezMV4R2NIAmT08wQJ3yUK82thHWmC/TnK/wpMMIA==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@smithy/is-array-buffer': 2.2.0
+      tslib: 2.8.1
+    dev: false
+
+  /@smithy/util-utf8@2.3.0:
+    resolution: {integrity: sha512-R8Rdn8Hy72KKcebgLiv8jQcQkXoLMOGGv5uI1/k0l+snqkOzQ1R0ChUBCxWMlBsFMekWjq0wRudIweFs7sKT5A==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@smithy/util-buffer-from': 2.2.0
       tslib: 2.8.1
     dev: false
 
