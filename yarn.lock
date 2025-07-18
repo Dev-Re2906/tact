@@ -889,10 +889,10 @@
   dependencies:
     "@sinonjs/commons" "^3.0.1"
 
-"@ston-fi/sdk@^0.5.0":
-  version "0.5.3"
-  resolved "https://registry.npmjs.org/@ston-fi/sdk/-/sdk-0.5.3.tgz"
-  integrity sha512-HfJ5+KFFBPRMMpP3gLx0IrtCzTsx+cn/J/2pHEQz7brjukWBB9vT8M8ho4Wj6yR3QpFo353agJMgQxVxaAjU2A==
+"@ston-fi/sdk@^2.0.0":
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/@ston-fi/sdk/-/sdk-2.5.0.tgz#496b0a034d4571ce32b6ee84a1e2539c8eefa104"
+  integrity sha512-G2bP8dt5hey6G98tw8D54nUWPsDgwEMkx0IGw/bd+qY4snIIzIlr7hZEobwS2DeFJ2yLottXJBaE/1z2kNMxrg==
 
 "@tact-lang/compiler@^1.6.12":
   version "1.6.13"
@@ -1759,7 +1759,7 @@ emoji-regex@^9.2.2:
   resolved "https://registry.npmjs.org/emoji-regex/-/emoji-regex-9.2.2.tgz"
   integrity sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==
 
-enquirer@^2.4.1:
+enquirer@^2.3.6:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/enquirer/-/enquirer-2.4.1.tgz#93334b3fbd74fc7097b224ab4a8fb7e40bf4ae56"
   integrity sha512-rRqJg/6gd538VHvR3PSrdRBb/1Vy2YfzHqzvbhGIQpDRKIa4FgV/54b5Q1xYSxOOwKvjXweS26E0Q+nAMwp2pQ==
