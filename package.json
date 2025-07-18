@@ -20,7 +20,7 @@
     "@ton/test-utils": "^0.4.2",
     "@ton/ton": "^13.9.0",
     "@types/jest": "^29.5.3",
-    "@types/node": "^20.2.5",
+    "@types/node": "^24.0.3",
     "@types/qs": "^6.9.7",
     "base64url": "^3.0.1",
     "dotenv": "^16.3.1",
