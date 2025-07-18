@@ -910,10 +910,10 @@
     yaml "^2.7.1"
     zod "^3.22.4"
 
-"@tact-lang/emulator@^3.2.2":
-  version "3.2.2"
-  resolved "https://registry.npmjs.org/@tact-lang/emulator/-/emulator-3.2.2.tgz"
-  integrity sha512-v5J4hZJ2baUaziUg7MjAaTlOk1lIK9EFMZaQpRN/v9hkqByNNeB9G9pT9/7SrjTgdnUqNxDFjoxjPILSq6p59g==
+"@tact-lang/emulator@^4.0.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@tact-lang/emulator/-/emulator-4.3.0.tgz#f221f81268f66a4b19acfb0ed6a7f7f643a94a5a"
+  integrity sha512-r0i92vyxgz+pQh+AtfXdVKUnM0XcsJevfyLn255hJvfAXQj+fqP7b083qDeoKFveHnxI7reakimCfZXBl73x6Q==
   dependencies:
     prando "^6.0.1"
     teslabot "^1.5.0"
@@ -1759,7 +1759,7 @@ emoji-regex@^9.2.2:
   resolved "https://registry.npmjs.org/emoji-regex/-/emoji-regex-9.2.2.tgz"
   integrity sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==
 
-enquirer@^2.4.1:
+enquirer@^2.3.6:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/enquirer/-/enquirer-2.4.1.tgz#93334b3fbd74fc7097b224ab4a8fb7e40bf4ae56"
   integrity sha512-rRqJg/6gd538VHvR3PSrdRBb/1Vy2YfzHqzvbhGIQpDRKIa4FgV/54b5Q1xYSxOOwKvjXweS26E0Q+nAMwp2pQ==
