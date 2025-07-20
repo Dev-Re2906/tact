@@ -89,4 +89,12 @@ messages:
 
             - name: Verify on TON Blockchain
               run: pnpm run verify || echo "Verification skipped."}}
-model: openai/gpt-4o
+model: meta/llama-4-maverick-17b-128e-instruct-fp8
+modelParameters:
+  max_tokens: 100
+  top_p: 0.47
+testData:
+  - {}
+evaluators:
+  - name: Groundedness
+    uses: github/groundedness
