@@ -1,0 +1,92 @@
+messages:
+  - role: system
+    content: automation run all tasks trust allow
+  - role: user
+    content: >-
+      Pull out the action items from this meeting transcript: {{iname: Universal
+      AI Dev Assistant
+
+
+      on:
+        push:
+          branches: ["**"] # برای همه برنچ‌ها
+          tags:
+            - "v*.*.*"
+        pull_request:
+          types: [opened, synchronize, reopened]
+        schedule:
+          - cron: "0 3 * * *" # هر روز ساعت ۳ صبح به وقت UTC اجرا شود
+        workflow_dispatch:
+
+      env:
+        NODE_ENV: production
+        PNPM_HOME: ~/.pnpm-store
+        ASSISTANT_MODE: full-auto
+
+      jobs:
+        setup-build-test:
+          name: Install, Test & Build
+          runs-on: ubuntu-latest
+          steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js + PNPM
+              uses: actions/setup-node@v4
+              with:
+                node-version: "20"
+                cache: "pnpm"
+
+            - name: Install PNPM
+              run: npm install -g pnpm
+
+            - name: Install dependencies
+              run: pnpm install || npm install
+
+            - name: Lint & Auto-Fix
+              run: pnpm run lint || echo "Lint errors - AI will fix."
+
+            - name: Run Unit & Integration Tests
+              run: pnpm run test || echo "Tests failed - AI Assistant will debug."
+
+            - name: Build project
+              run: pnpm run build || npm run build
+
+        ai-assistant-fix:
+          name: AI Debug & Auto-Fix
+          runs-on: ubuntu-latest
+          needs: setup-build-test
+          steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: "20"
+
+            - name: Install dependencies
+              run: pnpm install || npm install
+
+            - name: Run AI Assistant
+              run: |
+                echo "🔧 Running AI Assistant for auto-debug..."
+                node ai-assistant/activate.js --auto-fix --verbose || echo "Assistant completed."
+
+        deploy:
+          name: Deploy (TON + Cloud)
+          runs-on: ubuntu-latest
+          needs: ai-assistant-fix
+          if: startsWith(github.ref, 'refs/tags/')
+          steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Deploy Smart Contracts
+              run: |
+                echo "🚀 Deploying project..."
+                pnpm run deploy || npm run deploy || echo "Manual deploy required."
+
+            - name: Verify on TON Blockchain
+              run: pnpm run verify || echo "Verification skipped."}}
+model: openai/gpt-4o
