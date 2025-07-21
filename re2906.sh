@@ -1,149 +1,176 @@
 #!/bin/bash
-
-# ================================================================
-# 🔧 Ultimate Multi-Stack Dev Assistant - Build, Watch & Deploy
-# Supports: Node.js, Python, Docker, Git, TON Smart Contracts
-# Modes: One-Time, Continuous Watch, CI/CD
-# ================================================================
-
-LOG_FILE="./dev-assistant.log"
-RUN_ALL=true
-WATCH_INTERVAL=30
-MODE="one-time"  # default: one-time, options: watch, cicd
-
-trap 'echo "🛑 Stopping assistant..."; exit 0' SIGINT
-
+set -e
+LOG_FILE="./ultimate-repo-manager.log"
+trap 'echo "🛑 Stopped"; exit 0' SIGINT
 log() { echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"; }
 
 # -------------------------------
-# Detect Project Type
+# 1. Install Node.js (Clean + Latest)
 # -------------------------------
-detect_type() {
-  local dir="$1"
-  if [ -f "$dir/package.json" ]; then echo "node"
-  elif [ -f "$dir/requirements.txt" ] || [ -f "$dir/pyproject.toml" ]; then echo "python"
-  elif [ -f "$dir/Dockerfile" ]; then echo "docker"
-  elif [ -f "$dir/jetton-minter.fc" ] || [ -f "$dir/jetton-wallet.fc" ]; then echo "ton"
-  elif [ -d "$dir/.git" ]; then echo "git"
-  else echo "unknown"; fi
+install_node() {
+  log "🔧 Installing Node.js..."
+  apt purge -y nodejs npm || true
+  apt autoremove -y || true
+
+  # حذف کامل نسخه قبلی
+  rm -rf $HOME/nodejs
+
+  cd /tmp
+  NODE_VER="v20.11.1"
+  ARCH="linux-x64"
+  curl -O https://nodejs.org/dist/$NODE_VER/node-$NODE_VER-$ARCH.tar.xz
+  tar -xf node-$NODE_VER-$ARCH.tar.xz
+  mkdir -p $HOME/nodejs
+  mv node-$NODE_VER-$ARCH/* $HOME/nodejs/
+  echo 'export PATH=$HOME/nodejs/bin:$PATH' >> ~/.bashrc
+  export PATH=$HOME/nodejs/bin:$PATH
+  cd - >/dev/null
+
+  log "✅ Node.js: $(node -v), npm: $(npm -v)"
 }
 
 # -------------------------------
-# Deploy Functions
+# 2. Python venv (PEP668 safe)
 # -------------------------------
-deploy_node() {
-  local dir="$1"
-  log "🚀 Deploying Node.js app from $dir to production..."
-  (cd "$dir" && npx vercel --prod || npx netlify deploy --prod) || log "⚠️ Node.js deploy failed"
-}
-
-deploy_docker() {
-  local dir="$1"
-  log "🐳 Deploying Docker image from $dir..."
-  (cd "$dir" && docker build -t "$(basename "$dir")" . && docker push "$(basename "$dir")") || log "⚠️ Docker deploy failed"
-}
-
-deploy_ton() {
-  local dir="$1"
-  log "💎 Deploying TON smart contract from $dir to Mainnet..."
-  (cd "$dir" && toncli contract deploy --net mainnet --ton-os-se --wc 0 || tondev deploy) || log "⚠️ TON deploy failed"
-}
-
-deploy_git() {
-  local dir="$1"
-  log "📤 Pushing latest changes from $dir..."
-  (cd "$dir" && git add . && git commit -m "Auto-deploy" && git push && git tag -a "v$(date +%Y.%m.%d.%H%M)" -m "Release" && git push --tags) || log "⚠️ Git push failed"
+install_python_env() {
+  log "🐍 Setting up Python venv..."
+  apt update -y && apt install -y python3 python3-pip python3-venv
+  python3 -m venv ~/.venv
+  source ~/.venv/bin/activate
+  pip install --upgrade pip
+  log "✅ Python: $(python --version), pip: $(pip --version)"
 }
 
 # -------------------------------
-# Build & Run Project by Type
+# 3. Install GitHub CLI
 # -------------------------------
-process_project() {
-  local dir="$1"
-  local type; type=$(detect_type "$dir")
-  log "📂 Processing: $dir (type: $type)"
-
-  case $type in
-    node)
-      (cd "$dir" && npm install --silent)
-      (cd "$dir" && npm run build || true)
-      if $RUN_ALL; then (cd "$dir" && npm start &) fi
-      deploy_node "$dir"
-      ;;
-    python)
-      (cd "$dir" && pip install -r requirements.txt >/dev/null 2>&1 || true)
-      if $RUN_ALL && [ -f "$dir/main.py" ]; then (cd "$dir" && python3 main.py &) fi
-      ;;
-    docker)
-      (cd "$dir" && docker build -t "$(basename "$dir")" .)
-      if $RUN_ALL; then (cd "$dir" && docker run -d --rm "$(basename "$dir")") fi
-      deploy_docker "$dir"
-      ;;
-    ton)
-      log "🔨 Building TON contract..."
-      (cd "$dir" && func -o build.fc *.fc || true)
-      deploy_ton "$dir"
-      ;;
-    git)
-      (cd "$dir" && git pull --quiet)
-      deploy_git "$dir"
-      ;;
-    *)
-      log "ℹ️ Skipping unknown project type at $dir"
-      ;;
-  esac
+install_gh_cli() {
+  apt install -y gh git curl wget unzip
+  log "🔑 GitHub CLI installed"
 }
 
 # -------------------------------
-# Scan All Projects Recursively
+# 4. Install func (TON Compiler)
 # -------------------------------
-scan_projects() {
-  log "🔍 Scanning for all projects..."
-  find . -type d \( -name "node_modules" -o -name ".venv" \) -prune -o \
-    -type f \( -name "package.json" -o -name "requirements.txt" -o -name "Dockerfile" -o -name "jetton-minter.fc" \) -print |
-  while read -r file; do
-    process_project "$(dirname "$file")"
+install_func() {
+  log "💎 Installing TON func..."
+  mkdir -p ~/ton-bin && cd ~/ton-bin
+
+  # تلاش برای پیدا کردن آخرین نسخه prebuilt
+  FUNC_URL=$(curl -s https://api.github.com/repos/ton-blockchain/ton/releases/latest \
+    | grep "browser_download_url" | grep -E 'func$' | cut -d '"' -f 4)
+
+  if [ -n "$FUNC_URL" ]; then
+    log "⬇️ Downloading func from: $FUNC_URL"
+    wget -q "$FUNC_URL" -O func
+    chmod +x func
+  else
+    log "⚠️ No prebuilt func found. Building from source..."
+    apt update -y && apt install -y cmake build-essential git
+    git clone --depth=1 https://github.com/ton-blockchain/ton.git ton-src
+    cd ton-src
+    mkdir -p build && cd build
+    cmake ..
+    make func
+    cp func ~/ton-bin/
+    cd ~/ton-bin
+  fi
+
+  echo 'export PATH=$HOME/ton-bin:$PATH' >> ~/.bashrc
+  export PATH=$HOME/ton-bin:$PATH
+  cd - >/dev/null
+  log "✅ func ready: $(command -v func)"
+}
+
+# -------------------------------
+# 5. GitHub Auth (Device Login)
+# -------------------------------
+github_login() {
+  if gh auth status &>/dev/null; then
+    log "✅ Already logged in to GitHub"
+  else
+    log "🔐 Logging into GitHub..."
+    gh auth login --device
+  fi
+}
+
+# -------------------------------
+# 6. Process Each Repo
+# -------------------------------
+process_repo() {
+  local dir="$1"
+  log "📂 Processing: $dir"
+  cd "$dir"
+
+  # بررسی اتصال به ریموت
+  if ! git remote -v | grep -q origin; then
+    log "⚠️ Skipping (no remote)"
+    cd - >/dev/null
+    return
+  fi
+
+  # ادغام Pull Request ها
+  log "🔄 Fetching PRs..."
+  gh pr list --state open --limit 10 | while read -r pr; do
+    pr_number=$(echo "$pr" | awk '{print $1}')
+    if [ -n "$pr_number" ]; then
+      gh pr checkout "$pr_number"
+      git merge --no-edit
+    fi
+  done || true
+
+  # نصب وابستگی‌ها
+  if [ -f "package.json" ]; then
+    log "📦 Node.js: Installing deps..."
+    npm install && npm update || true
+  fi
+  if [ -f "requirements.txt" ]; then
+    log "📦 Python: Installing deps..."
+    pip install -r requirements.txt || true
+  fi
+
+  # ساخت پروژه
+  if [ ! -f "build.sh" ] && [ -f "package.json" ]; then
+    echo -e "#!/bin/bash\nnpm run build || echo 'No build script'" > build.sh
+    chmod +x build.sh
+  fi
+  [ -f "build.sh" ] && ./build.sh || true
+
+  # کامپایل قراردادهای TON
+  if ls *.fc >/dev/null 2>&1; then
+    log "💎 Compiling TON contracts..."
+    func -o build.fc *.fc || true
+  fi
+
+  # Commit, Push, Release
+  git add . || true
+  git commit -m "Auto-update $(date +%F)" || true
+  git push || true
+  TAG="v$(date +%Y.%m.%d.%H%M)"
+  git tag -a "$TAG" -m "Release $TAG" || true
+  git push origin "$TAG" || true
+  gh release create "$TAG" --title "Release $TAG" --notes "Automated release" || true
+
+  cd - >/dev/null
+}
+
+# -------------------------------
+# 7. Scan All Repos
+# -------------------------------
+scan_all_repos() {
+  log "🔍 Scanning all repositories..."
+  find . -type d -name ".git" | while read -r g; do
+    process_repo "$(dirname "$g")"
   done
 }
 
 # -------------------------------
-# Mode Selection
+# MAIN EXECUTION
 # -------------------------------
-show_help() {
-  echo "Usage: $0 [mode]"
-  echo "Modes:"
-  echo "  one-time    Build, run, deploy all projects once (default)"
-  echo "  watch       Continuously monitor and deploy on changes"
-  echo "  cicd        CI/CD mode (optimized for GitHub Actions)"
-  exit 0
-}
-
-if [ "$1" = "watch" ]; then
-  MODE="watch"
-elif [ "$1" = "cicd" ]; then
-  MODE="cicd"
-elif [ "$1" = "help" ] || [ "$1" = "--help" ]; then
-  show_help
-fi
-
-# -------------------------------
-# Main Loop
-# -------------------------------
-case $MODE in
-  one-time)
-    log "▶️ Running one-time build & deploy for all projects"
-    scan_projects
-    ;;
-  watch)
-    log "👀 Starting watch mode (polling every $WATCH_INTERVAL seconds)"
-    while true; do
-      scan_projects
-      sleep "$WATCH_INTERVAL"
-    done
-    ;;
-  cicd)
-    log "⚙️ Running in CI/CD mode (non-interactive, optimized for pipelines)"
-    RUN_ALL=false
-    scan_projects
-    ;;
-esac
+install_node
+install_python_env
+install_gh_cli
+install_func
+github_login
+scan_all_repos
+log "🎉 DONE: All repositories updated & deployed!"
