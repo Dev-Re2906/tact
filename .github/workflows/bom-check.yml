@@ -1,0 +1,32 @@
+name: SPDX BOM Validator
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  bom-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install SPDX Tools
+        run: |
+          sudo apt update
+          sudo apt install -y default-jre wget
+          wget https://github.com/spdx/tools-java/releases/download/v1.1.8/tools-java-1.1.8-jar-with-dependencies.jar -O spdx-tools.jar
+
+      - name: Validate SPDX JSON
+        run: |
+          java -jar spdx-tools.jar Verify re2906.spdx.json
+
+      - name: Commit Updated SPDX (if needed)
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add re2906.spdx.json || true
+          git commit -m "chore: update SPDX BOM" || echo "No changes"
+          git push
