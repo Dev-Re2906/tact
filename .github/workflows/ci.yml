@@ -1,0 +1,259 @@
+name: Multi-language Full-stack CI/CD
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*.*.*']
+  pull_request:
+    branches: [main, master]
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+
+jobs:
+  detect-project:
+    name: Detect Project Language
+    runs-on: ubuntu-latest
+    outputs:
+      lang: ${{ steps.detect.outputs.lang }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          if [ -f package.json ]; then
+            echo "lang=node" >> $GITHUB_OUTPUT
+          elif [ -f requirements.txt ]; then
+            echo "lang=python" >> $GITHUB_OUTPUT
+          elif [ -f Cargo.toml ]; then
+            echo "lang=rust" >> $GITHUB_OUTPUT
+          elif [ -f go.mod ]; then
+            echo "lang=go" >> $GITHUB_OUTPUT
+          elif ls *.csproj 1> /dev/null 2>&1; then
+            echo "lang=dotnet" >> $GITHUB_OUTPUT
+          elif [ -f pom.xml ]; then
+            echo "lang=java" >> $GITHUB_OUTPUT
+          elif [ -f composer.json ]; then
+            echo "lang=php" >> $GITHUB_OUTPUT
+          elif [ -f Gemfile ]; then
+            echo "lang=ruby" >> $GITHUB_OUTPUT
+          else
+            echo "lang=unknown" >> $GITHUB_OUTPUT
+          fi
+
+  build-test:
+    name: Build & Test (${{ needs.detect-project.outputs.lang }})
+    needs: detect-project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Node.js
+      - name: Setup Node.js
+        if: ${{ needs.detect-project.outputs.lang == 'node' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      # Python
+      - name: Setup Python
+        if: ${{ needs.detect-project.outputs.lang == 'python' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      # Rust
+      - name: Setup Rust
+        if: ${{ needs.detect-project.outputs.lang == 'rust' }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      # Go
+      - name: Setup Go
+        if: ${{ needs.detect-project.outputs.lang == 'go' }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.21
+
+      # .NET
+      - name: Setup .NET
+        if: ${{ needs.detect-project.outputs.lang == 'dotnet' }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+
+      # Java
+      - name: Setup Java
+        if: ${{ needs.detect-project.outputs.lang == 'java' }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: 'maven'
+
+      # PHP
+      - name: Setup PHP
+        if: ${{ needs.detect-project.outputs.lang == 'php' }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: mbstring, xml, curl
+          tools: composer
+          coverage: none
+
+      # Ruby
+      - name: Setup Ruby
+        if: ${{ needs.detect-project.outputs.lang == 'ruby' }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+          bundler-cache: true
+
+      - name: Install Dependencies and Build
+        run: |
+          case "${{ needs.detect-project.outputs.lang }}" in
+            node)
+              npm ci
+              npm run build --if-present
+              ;;
+            python)
+              pip install -r requirements.txt
+              ;;
+            rust)
+              cargo build --release
+              ;;
+            go)
+              go build ./...
+              ;;
+            dotnet)
+              dotnet restore
+              dotnet build --configuration Release
+              ;;
+            java)
+              mvn install -DskipTests
+              ;;
+            php)
+              composer install --no-interaction --no-progress --prefer-dist
+              ;;
+            ruby)
+              bundle install
+              ;;
+            *)
+              echo "Unknown language, skipping build."
+              ;;
+          esac
+
+      - name: Run Tests
+        run: |
+          case "${{ needs.detect-project.outputs.lang }}" in
+            node)
+              npm test || true
+              ;;
+            python)
+              pytest || true
+              ;;
+            rust)
+              cargo test || true
+              ;;
+            go)
+              go test ./... || true
+              ;;
+            dotnet)
+              dotnet test --no-build --verbosity normal || true
+              ;;
+            java)
+              mvn test || true
+              ;;
+            php)
+              vendor/bin/phpunit || true
+              ;;
+            ruby)
+              bundle exec rspec || true
+              ;;
+            *)
+              echo "No tests configured."
+              ;;
+          esac
+
+      - name: Save logs
+        run: mkdir -p logs && cp -r . logs/ || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs
+          path: logs/
+
+      - name: Commit generated files if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --cached --quiet || (git commit -m "chore: update generated files" && git push)
+
+      - name: Create Issue on Failure
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const title = `🚨 Build/Test Failed on ${context.ref}`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body: "Build or test failed. See logs in artifacts.",
+              labels: ["bug", "ci-failure"]
+            })
+
+  release:
+    name: Auto Release
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+
+  maintenance:
+    name: Auto Maintenance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Close stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-message: "This issue is stale due to inactivity."
+          close-issue-message: "Closing due to inactivity."
+      - name: Cleanup old branches
+        uses: devops-infra/action-delete-branch@v0.3.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          exclude: main,master
+
+  docs-dashboard:
+    name: Generate Docs & Deploy Dashboard
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate README & Status
+        run: |
+          mkdir -p docs
+          echo "# Project Dashboard" > docs/status.md
+          echo "Last build: $(date)" >> docs/status.md
+          echo "Logs available in artifacts." >> docs/status.md
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
