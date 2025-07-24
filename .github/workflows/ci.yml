@@ -197,7 +197,7 @@ jobs:
 
       - name: Create Issue on Failure
         if: failure()
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const title = `🚨 Build/Test Failed on ${context.ref}`;
