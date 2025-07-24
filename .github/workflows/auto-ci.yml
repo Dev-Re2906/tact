@@ -20,6 +20,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Detect Project
         id: detect
         run: |
@@ -43,26 +44,26 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        if: needs.detect-project.outputs.lang == 'node'
+        if: ${{ needs.detect-project.outputs.lang == 'node' }}
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'npm'
 
       - name: Setup Python
-        if: needs.detect-project.outputs.lang == 'python'
+        if: ${{ needs.detect-project.outputs.lang == 'python' }}
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Setup Rust
-        if: needs.detect-project.outputs.lang == 'rust'
+        if: ${{ needs.detect-project.outputs.lang == 'rust' }}
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
 
       - name: Setup Go
-        if: needs.detect-project.outputs.lang == 'go'
+        if: ${{ needs.detect-project.outputs.lang == 'go' }}
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
@@ -95,9 +96,9 @@ jobs:
           name: ci-logs
           path: logs/
 
-      # ایجاد Issue خودکار در صورت شکست
-      - uses: actions/github-script@v6
-        if: failure()
+      - name: Create Issue on Failure
+        if: ${{ failure() }}
+        uses: actions/github-script@v6
         with:
           script: |
             const title = `🚨 Build/Test Failed on ${context.ref}`;
