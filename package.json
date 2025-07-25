@@ -23,7 +23,7 @@
     "@ton/sandbox": "^0.15.0",
     "@ton/test-utils": "^0.4.2",
     "@ton/ton": "^13.9.0",
-    "@types/jest": "^29.5.3",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.2.5",
     "@types/qs": "^6.9.7",
     "base64url": "^3.0.1",
