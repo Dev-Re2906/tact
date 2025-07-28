@@ -66,7 +66,7 @@ jobs:
         if: ${{ needs.detect-project.outputs.lang == 'go' }}
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Install & Build
         run: |
